@@ -1,0 +1,4 @@
+__pycache__
+examine.py
+*.json
+*.pth

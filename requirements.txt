@@ -4,4 +4,4 @@ rouge_score
 nltk
 pycocoevalcap
 scikit-learn
-pyyaml
+dynamic_yaml

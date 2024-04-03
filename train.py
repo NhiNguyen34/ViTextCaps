@@ -1,4 +1,5 @@
-import yaml
+import os
+import dynamic_yaml
 import argparse
 
 import torch
@@ -32,7 +33,9 @@ def start_training(config):
                 n_layers=4,
                 vocab_size=tokenizer.vocab_size + 1,
                 fixed_ans_emb=fixed_ans_emb).to(device)
-
+    
+    if not os.path.isdir(config.checkpoint_path):
+        os.makedirs(config.checkpoint_path)
 
     train(model, train_dataloader, dev_dataloader, tokenizer, config)
     evaluate(model, test_dataloader, tokenizer, config)
@@ -45,6 +48,6 @@ if __name__ == "__main__":
     args = args_parser.parse_args()
 
     with open(args.config) as conf_file:
-        config = yaml.safe_load(conf_file)
+        config = dynamic_yaml.load(conf_file)
     
     start_training(config)

@@ -41,9 +41,9 @@ def warmup_lr(current_epoch):
 def train(model, train_dataloader, dev_dataloader, tokenizer, config):
     # Create a LambdaLR scheduler for learning rate warm-up
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_lr)
-    base_lr = 1e-4
+    base_lr = config.learning_rate
     criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_id)
-    optimizer = torch.optim.Adam(model.get_optimizer_parameters(base_lr), lr=base_lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=base_lr)
 
     if os.path.isfile(os.path.join(config.checkpoint_path, "last_model.pth")):
         checkpoint = torch.load(os.path.join(config.checkpoint_path, "last_model.pth"))
@@ -137,7 +137,7 @@ def train(model, train_dataloader, dev_dataloader, tokenizer, config):
 
 def evaluate(model, test_dataloader, tokenizer, config):
     if not os.path.isfile(os.path.join(config.checkpoint_path, "best_model.pth")):
-        raise FileNotFoundError("Cannot file the best_model.path. Please ensure the training was completed.")
+        raise FileNotFoundError("Cannot load best_model.path. Please ensure the training was completed.")
     
     checkpoint = torch.load(os.path.join(config.checkpoint_path, "best_model.pth"))
     model.load_state_dict(checkpoint["model"])
