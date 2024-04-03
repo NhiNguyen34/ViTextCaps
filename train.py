@@ -4,38 +4,29 @@ import argparse
 
 import torch
 from torch.utils.data import DataLoader
-from transformers import PhobertTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoConfig
 
-from utils.vitextcaps_dataset import ViTextCapsDataset
+from utils.vitextcaps_dataset import ViTextCapsDataset, collate_fn
 from utils.training_utils import train, evaluate
 from models.m4c import M4C
 
 def start_training(config):
-    tokenizer = PhobertTokenizer.from_pretrained(config.pretrained_name)
+    tokenizer = AutoTokenizer.from_pretrained(config.model.pretrained_name)
 
-    train_dataset = ViTextCapsDataset(tokenizer, config.train_path)
-    dev_dataset = ViTextCapsDataset(tokenizer, config.dev_path)
-    test_dataset = ViTextCapsDataset(tokenizer, config.test_path)
+    train_dataset = ViTextCapsDataset(tokenizer, config.dataset.train_path)
+    dev_dataset = ViTextCapsDataset(tokenizer, config.dataset.dev_path)
+    test_dataset = ViTextCapsDataset(tokenizer, config.dataset.test_path)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, collate_fn=train_dataset.collate_fn)
-    dev_dataloader = DataLoader(dev_dataset, batch_size=config.batch_size, shuffle=True, collate_fn=dev_dataset.collate_fn)
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True, collate_fn=test_dataset.collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.model.batch_size, shuffle=True, collate_fn=collate_fn)
+    dev_dataloader = DataLoader(dev_dataset, batch_size=config.model.batch_size, shuffle=True, collate_fn=collate_fn)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True, collate_fn=collate_fn)
 
-    device = torch.device(config.device)
-    phobert_model = AutoModel.from_pretrained(config.pretrained_name)
-    phobert_model.embeddings.word_embeddings.requires_grad = False
-    fixed_ans_emb = phobert_model.embeddings.word_embeddings.weight
-    model = M4C(obj_in_dim=1024,
-                ocr_in_dim=812,
-                hidden_size=768,
-                n_heads=12,
-                d_k=64,
-                n_layers=4,
-                vocab_size=tokenizer.vocab_size + 1,
-                fixed_ans_emb=fixed_ans_emb).to(device)
+    device = torch.device(config.model.device)
+    pretrained_config = AutoConfig.from_pretrained(config.model.pretrained_name)
+    model = M4C(config.model, pretrained_config).to(device)
     
-    if not os.path.isdir(config.checkpoint_path):
-        os.makedirs(config.checkpoint_path)
+    if not os.path.isdir(config.model.checkpoint_path):
+        os.makedirs(config.model.checkpoint_path)
 
     train(model, train_dataloader, dev_dataloader, tokenizer, config)
     evaluate(model, test_dataloader, tokenizer, config)

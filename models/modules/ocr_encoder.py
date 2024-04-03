@@ -3,31 +3,34 @@ from torch import nn
 from torch.nn import functional as F
 
 class OCREncoder(nn.Module):
-  def __init__(self, ocr_in_dim, hidden_size, dropout_prob=0.1):
-    super().__init__()
+    def __init__(self, ocr_in_dim, hidden_size, embedding, dropout_prob=0.1):
+        super().__init__()
 
-    # 300 (FastText) + 256 (rec_features) + 256 (det_features) = 812
-    self.linear_ocr_feat_to_mmt_in = nn.Linear(ocr_in_dim, hidden_size)
+        self.embedding = embedding
 
-    # OCR location feature
-    self.linear_ocr_bbox_to_mmt_in = nn.Linear(4, hidden_size)
+        # 300 (FastText) + 256 (rec_features) + 256 (det_features) = 812
+        self.linear_ocr_feat_to_mmt_in = nn.Linear(ocr_in_dim, hidden_size)
 
-    self.ocr_feat_layer_norm = nn.LayerNorm(hidden_size)
-    self.ocr_bbox_layer_norm = nn.LayerNorm(hidden_size)
-    self.dropout = nn.Dropout(dropout_prob)
+        # OCR location feature
+        self.linear_ocr_bbox_to_mmt_in = nn.Linear(4, hidden_size)
 
-  def forward(self, ocr_boxes, ocr_token_embeddings, ocr_rec_features, ocr_det_features):
+        self.ocr_feat_layer_norm = nn.LayerNorm(hidden_size)
+        self.ocr_bbox_layer_norm = nn.LayerNorm(hidden_size)
+        self.dropout = nn.Dropout(dropout_prob)
 
-    # Normalize input
-    ocr_token_embeddings = F.normalize(ocr_token_embeddings, dim=-1)
-    ocr_rec_features = F.normalize(ocr_rec_features, dim=-1)
-    ocr_det_features = F.normalize(ocr_det_features, dim=-1)
+    def forward(self, ocr_boxes, ocr_tokens, ocr_rec_features, ocr_det_features):
+        ocr_embeddings = self.embedding(ocr_tokens).sum(dim=-2)
 
-    # get OCR combine features
-    ocr_combine_features = torch.cat([ocr_token_embeddings, ocr_rec_features, ocr_det_features], dim=-1)
-    ocr_combine_features = self.ocr_feat_layer_norm(self.linear_ocr_feat_to_mmt_in(ocr_combine_features))
+        # Normalize input
+        ocr_embeddings = F.normalize(ocr_embeddings, dim=-1)
+        ocr_rec_features = F.normalize(ocr_rec_features, dim=-1)
+        ocr_det_features = F.normalize(ocr_det_features, dim=-1)
 
-    # Get OCR bbox features
-    ocr_bbox_features = self.ocr_bbox_layer_norm(self.linear_ocr_bbox_to_mmt_in(ocr_boxes))
+        # get OCR combine features
+        ocr_combine_features = torch.cat([ocr_embeddings, ocr_rec_features, ocr_det_features], dim=-1)
+        ocr_combine_features = self.ocr_feat_layer_norm(self.linear_ocr_feat_to_mmt_in(ocr_combine_features))
 
-    return self.dropout(ocr_combine_features + ocr_bbox_features) # batch_size, seq_length, hidden_size
+        # Get OCR bbox features
+        ocr_bbox_features = self.ocr_bbox_layer_norm(self.linear_ocr_bbox_to_mmt_in(ocr_boxes))
+
+        return self.dropout(ocr_combine_features + ocr_bbox_features) # batch_size, seq_length, hidden_size

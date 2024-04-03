@@ -72,7 +72,7 @@ def train(model, train_dataloader, dev_dataloader, tokenizer, config):
         with tqdm(train_dataloader, desc="Training") as pb:
                 for sample in pb:
                     # Forwad pass
-                    outputs = model(sample, device) # batch_size, T, vocab + ocr_tokens
+                    outputs = model(**sample) # batch_size, T, vocab + ocr_tokens
                     loss = criterion(outputs.mT, sample['labels'].to(device))
                     optimizer.zero_grad() # Xóa cái gradient ở vòng lặp trước
 
@@ -101,7 +101,7 @@ def train(model, train_dataloader, dev_dataloader, tokenizer, config):
             for sample in pb:
                 # Forward pass
                 with torch.inference_mode():
-                    outputs = model(sample, device) # batch_size, T, vocab
+                    outputs = model(**sample) # batch_size, T, vocab
                 pred_cap = tokenizer.batch_decode(outputs, skip_special_tokens=True)
                 gt_cap = sample["raw_captions"]
                 pred_caps.extend(pred_cap)
@@ -151,7 +151,7 @@ def evaluate(model, test_dataloader, tokenizer, config):
         for sample in pb:
             # Forward pass
             with torch.inference_mode():
-                outputs = model(sample, device) # batch_size, T, vocab
+                outputs = model.generate(**sample) # batch_size, T, vocab
             pred_cap = tokenizer.batch_decode(outputs, skip_special_tokens=True)
             gt_cap = sample["raw_captions"]
             pred_caps.extend(pred_cap)
