@@ -1,0 +1,11 @@
+experiment: m4c
+device: cuda:0
+pretrained_name: vinai/phobert-base-v2
+train_path: path-to-train-data
+dev_path: path-to-dev-data
+test_path: path-to-test-data
+batch_size: 16
+learning_rate: 1e-4
+metric: cider
+max_patient: 5
+checkpoint_path: f"checkpoint/{experiment}"
