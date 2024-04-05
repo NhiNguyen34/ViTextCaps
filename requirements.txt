@@ -1,0 +1,7 @@
+transformers
+evaluate
+rouge_score
+nltk
+pycocoevalcap
+scikit-learn
+dynamic_yaml

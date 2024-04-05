@@ -1,0 +1,20 @@
+experiment: m4c
+model:
+    device: cuda:0
+    pretrained_name: bert-base-uncased
+    batch_size: 16
+    learning_rate: 1e-4
+    metric: cider
+    max_patient: 5
+    checkpoint_path: f"checkpoint/{experiment}"
+    max_ocr: 32
+    max_object: 32
+    max_input: 80
+    masked_vision_value: 64000.0
+
+dataset:
+    train_path: vitextcaps_train.json
+    dev_path: vitextcaps_dev.json
+    test_path: vitextcaps_test.json
+    ocr_path: ocr_features
+    object_path: object_features
