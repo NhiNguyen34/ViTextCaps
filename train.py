@@ -1,5 +1,5 @@
 import os
-import dynamic_yaml
+import yaml
 import argparse
 
 import torch
@@ -11,11 +11,10 @@ from utils.training_utils import train, evaluate
 from models.m4c import M4C
 
 def start_training(config):
-    tokenizer = AutoTokenizer.from_pretrained(config.model.pretrained_name)
-
-    train_dataset = ViTextCapsDataset(tokenizer, config.dataset.train_path)
-    dev_dataset = ViTextCapsDataset(tokenizer, config.dataset.dev_path)
-    test_dataset = ViTextCapsDataset(tokenizer, config.dataset.test_path)
+    tokenizer = AutoTokenizer.from_pretrained(config['model']['pretrained_name'])
+    train_dataset = ViTextCapsDataset(tokenizer, config['dataset']['train_path'], config)
+    dev_dataset = ViTextCapsDataset(tokenizer, config['dataset']['dev_path'], config)
+    test_dataset = ViTextCapsDataset(tokenizer, config['dataset']['test_path'], config)
 
     train_dataloader = DataLoader(train_dataset, batch_size=config.model.batch_size, shuffle=True, collate_fn=collate_fn)
     dev_dataloader = DataLoader(dev_dataset, batch_size=config.model.batch_size, shuffle=True, collate_fn=collate_fn)
@@ -37,8 +36,6 @@ if __name__ == "__main__":
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--config', dest='config', required=True)
     args = args_parser.parse_args()
-
     with open(args.config) as conf_file:
-        config = dynamic_yaml.load(conf_file)
-    
+        config = yaml.safe_load(conf_file)
     start_training(config)

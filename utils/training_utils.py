@@ -4,7 +4,7 @@ from tqdm import tqdm
 import os
 import json
 
-from evaluation import compute_metrics
+from .evaluation import compute_metrics
 
 def loss_fn(outputs, labels, padding_value):
     vocab_ocr_size = outputs.size(-1)
