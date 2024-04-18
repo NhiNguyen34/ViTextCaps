@@ -10,20 +10,21 @@ from typing import Optional, Tuple
 
 class M4C(BertGenerationDecoder):
     def __init__(self, config, pretrained_config):
-        pretrained_config = pretrained_config.update({
-            "is_decoder": True,
-            "add_cross_attention": True
-        })
-        super().__init__(pretrained_config)
-        self.bert.from_pretrained(config.pretrained_name)
 
-        pretrained_config = pretrained_config.update({
-            "is_decoder": False,
-            "add_cross_attention": False
-        })
+        super().__init__(pretrained_config)
+
+        #print(pretrained_config)
+
+        #print(config)
+        #print(pretrained_config)
+
+        self.bert.from_pretrained(config['pretrained_name'])
+
+
         self.encoder = BertGenerationEncoder(pretrained_config)
-        self.encoder.from_pretrained(config.pretrained_name)
+        self.encoder.from_pretrained(config['pretrained_name'])
         self.encoder.set_input_embeddings(self.bert.get_input_embeddings())
+        #pretrained_config = {**pretrained_config.to_dict(), "is_decoder": True, "add_cross_attention": True}
 
         self.object_encoder = ObjectEncoder(
             config.object_in_dim,

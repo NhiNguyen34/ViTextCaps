@@ -18,11 +18,11 @@ class ViTextCapsDataset(Dataset):
         self.annotations = self.load_annotations(path)
         self.tokenizer = tokenizer
         
-        self.max_ocr = config.max_ocr
-        self.max_object = config.max_object
-        self.masked_vision_value = config.masked_vision_value
-        self.ocr_path = config.ocr_path
-        self.object_path = config.obj_path
+        self.max_ocr = config['model']['max_ocr']
+        self.max_object = config['model']['max_object']
+        self.masked_vision_value = config['model']['masked_vision_value']
+        self.ocr_path = config['dataset']['ocr_path']
+        self.object_path = config['dataset']['object_path']
 
     def load_annotations(self, path: str) -> list:
         annotations = json.load(open(path))
