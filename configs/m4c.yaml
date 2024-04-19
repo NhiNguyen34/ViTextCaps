@@ -11,6 +11,9 @@ model:
     max_object: 32
     max_input: 80
     masked_vision_value: 64000.0
+    object_in_dim: 1024
+    ocr_in_dim: 812
+    hidden_size: 768
 
 dataset:
     train_path: vitextcaps_train.json
@@ -18,3 +21,5 @@ dataset:
     test_path: vitextcaps_test.json
     ocr_path: ocr_features
     object_path: object_features
+
+

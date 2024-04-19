@@ -3,10 +3,10 @@ from torch import nn
 from torch.nn import functional as F
 
 class OCREncoder(nn.Module):
-    def __init__(self, ocr_in_dim, hidden_size, embedding, dropout_prob=0.1):
+    def __init__(self, ocr_in_dim, hidden_size, dropout_prob=0.1):
         super().__init__()
 
-        self.embedding = embedding
+        self.embedding = nn.Embedding(ocr_in_dim, hidden_size)
 
         # 300 (FastText) + 256 (rec_features) + 256 (det_features) = 812
         self.linear_ocr_feat_to_mmt_in = nn.Linear(ocr_in_dim, hidden_size)

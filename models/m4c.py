@@ -13,29 +13,27 @@ class M4C(BertGenerationDecoder):
 
         super().__init__(pretrained_config)
 
-        #print(pretrained_config)
-        #pretrained_config = {**pretrained_config.to_dict(), "is_decoder": True, "add_cross_attention": True}
-
         #pretrained_config = {**pretrained_config.to_dict(), "is_decoder": True}
-        self.bert.from_pretrained(config['pretrained_name'])
+        self.bert.from_pretrained(config['pretrained_name'], )
+        #print(pretrained_config)
+        #print(config)
+        #print(config['model'])
 
 
         self.encoder = BertGenerationEncoder(pretrained_config)
         self.encoder.from_pretrained(config['pretrained_name'])
         self.encoder.set_input_embeddings(self.bert.get_input_embeddings())
         #pretrained_config = {**pretrained_config.to_dict(), "is_decoder": True, "add_cross_attention": True}
-
+        #print(ObjectEncoder)
         self.object_encoder = ObjectEncoder(
             config['object_in_dim'],
-            pretrained_config['d_model'],
-            pretrained_config['dropout']
+            config['hidden_size'],
         )
         self.ocr_encoder = OCREncoder(
             config['ocr_in_dim'],
-            pretrained_config['d_model'],
-            pretrained_config['dropout']
+            config['hidden_size']
         )
-        self.masked_vision_value = config.masked_vision_value
+        self.masked_vision_value = config['masked_vision_value']
 
     def forward(
             self,

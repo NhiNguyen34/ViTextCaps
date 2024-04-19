@@ -40,13 +40,15 @@ def warmup_lr(current_epoch):
 
 def train(model, train_dataloader, dev_dataloader, tokenizer, config):
     # Create a LambdaLR scheduler for learning rate warm-up
+    base_lr = 1e-4
+    optimizer = torch.optim.Adam(model.parameters(base_lr), lr=base_lr)
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_lr)
-    base_lr = config.learning_rate
-    criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_id)
-    optimizer = torch.optim.Adam(model.parameters(), lr=base_lr)
 
-    if os.path.isfile(os.path.join(config.checkpoint_path, "last_model.pth")):
-        checkpoint = torch.load(os.path.join(config.checkpoint_path, "last_model.pth"))
+    #print(tokenizer)
+    criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
+
+    if os.path.isfile(os.path.join(config['model']['checkpoint_path'], "last_model.pth")):
+        checkpoint = torch.load(os.path.join(config['model']['checkpoint_path'], "last_model.pth"))
         model.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         scheduler.load_state_dict(checkpoint["scheduler"])
@@ -60,7 +62,7 @@ def train(model, train_dataloader, dev_dataloader, tokenizer, config):
         model.apply(initialize_weights)
 
     # Send model to device
-    device = torch.device(config.device)
+    device = torch.device(config['model']['device'])
     model = model.to(device)
     while True:
         epoch += 1
@@ -111,7 +113,7 @@ def train(model, train_dataloader, dev_dataloader, tokenizer, config):
         for score in scores:
             print(f"\t{score}: {scores[score]}")
 
-        score = scores[config.metric]
+        score = scores[config['model']['metric']]
         # Save checkpoints
         if score > best_score:
             best_score = score
@@ -139,9 +141,9 @@ def evaluate(model, test_dataloader, tokenizer, config):
     if not os.path.isfile(os.path.join(config.checkpoint_path, "best_model.pth")):
         raise FileNotFoundError("Cannot load best_model.path. Please ensure the training was completed.")
     
-    checkpoint = torch.load(os.path.join(config.checkpoint_path, "best_model.pth"))
+    checkpoint = torch.load(os.path.join(config['model']['checkpoint_path'], "best_model.pth"))
     model.load_state_dict(checkpoint["model"])
-    device = torch.device(config.device)
+    device = torch.device(config['model']['device'])
     model = model.to(device)
     model.eval()
     gt_caps = []
@@ -169,4 +171,4 @@ def evaluate(model, test_dataloader, tokenizer, config):
     json.dump({
         "results": results,
         "scores": scores
-    }, open(os.path.join(config.checkpoint_path, "results.json"), "w+"), ensure_ascii=False, indent=4)
+    }, open(os.path.join(config['model']['checkpoint_path'], "results.json"), "w+"), ensure_ascii=False, indent=4)
